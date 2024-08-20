@@ -24,7 +24,7 @@ func NewAwsCicdPipelineGoStack(scope constructs.Construct, id string, props *Aws
 		nil,
 	)
 
-	pipelines.NewCodePipeline(stack, jsii.String("Pipeline"), &pipelines.CodePipelineProps{
+	pipeline := pipelines.NewCodePipeline(stack, jsii.String("Pipeline"), &pipelines.CodePipelineProps{
 		PipelineName: jsii.String("TestPipeline"),
 		Synth: pipelines.NewShellStep(jsii.String("Synth"), &pipelines.ShellStepProps{
 			Input: repo,
@@ -36,5 +36,10 @@ func NewAwsCicdPipelineGoStack(scope constructs.Construct, id string, props *Aws
 			),
 		}),
 	})
+
+	testingStage := pipeline.AddStage(NewPipelineStage(stack, "test", nil), nil)
+	testingStage.AddPost(pipelines.NewManualApprovalStep(jsii.String("Manual approval before production"), nil))
+	pipeline.AddStage(NewPipelineStage(stack, "prod", nil), nil)
+
 	return stack
 }
